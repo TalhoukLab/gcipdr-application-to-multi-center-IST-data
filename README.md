@@ -1,10 +1,8 @@
-# R_examples
-miscellaneous R analyses
+This is code to run an applicatoin of the 'gcipdr' package (see omonimous repository) on the open multi-center International Stroke Trial (IST) data. 
 
-# gcipdr_analysis_1 
+# Instructions
 
-Note: analyses are run with package 'parallel'. For full reproducibility do not change default mclapply forking settings (2 cores).
+Simply clone or download the repository. The main analysis is in file 'gcipdr_IST_analysis.R'. Just execute the whole script. 
+Additional simulations are in 'sim_1.R' and 'sim_2.R' (simulations on aspirin and blood-pressure effect respectively). Run these scripts separately. 
+Files depend on 'simulation_functions_v9.R'. Beware: changing number of cores can yield different results. Computation time in the simulation study can take up to several hours under current settings. 
 
-# BEWARE 
-
-Running this program in your current R working directory will save about 200 MB of .rds files in it. 
