@@ -1,4 +1,4 @@
-## sim_2.R contains R commands to execute 'gcipdr application to multi-center IST data' (from omonimous repository). 
+## sim_2.R contains R commands to execute 'gcipdr application to multi-center IST data' (from homonymous repository). 
 ## Copyright (C) 2018 Federico Bonofiglio
 
     ## This Program is free software: you can redistribute it and/or modify

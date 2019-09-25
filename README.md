@@ -1,4 +1,4 @@
-This is code to run an applicatoin of the 'gcipdr' package (see omonimous repository) on the open multi-center International Stroke Trial (IST) data. 
+This is code to run an application of the 'gcipdr' package (see homonymous repository) on the open multi-center International Stroke Trial (IST) data. 
 
 # Instructions
 
