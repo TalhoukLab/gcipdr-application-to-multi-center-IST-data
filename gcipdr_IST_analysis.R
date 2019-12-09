@@ -1,5 +1,5 @@
-## gcipdr_IST_analysis.R contains R commands to execute 'gcipdr application to multi-center IST data' (from homonymous repository). 
-## Copyright (C) 2018 Federico Bonofiglio
+## gcipdr_IST_analysis.R contains R commands to execute 'gcipdr application to multi-center IST data' (from omonimous repository). 
+## Copyright (C) 2019 Federico Bonofiglio
 
     ## This Program is free software: you can redistribute it and/or modify
     ## it under the terms of the GNU General Public License as published by
@@ -14,8 +14,11 @@
     ## You should have received a copy of the GNU General Public License
     ## along with This Program.  If not, see <https://www.gnu.org/licenses/>. 
 
+if (!require("devtools")) {
+    install.packages("devtools")
+    library(devtools)
+}
 
-library(devtools)
 
 ## Install 'JohnsonDistribution' dependency (only available on CRAN archives)
 
@@ -36,11 +39,28 @@ install_github("bonorico/gcipdr")
 # load libraries
 
 library(gcipdr)
-library(cowplot)
 
-library(meta)
-library(metafor)
-library(lme4)
+if (!require("cowplot")) {
+    install.packages("cowplot")
+    library(cowplot)
+}
+
+if (!require("meta")) {
+    install.packages("meta")
+    library(meta)
+}
+
+if (!require("metafor")) {
+    install.packages("metafor")
+    library(metafor)
+}
+
+if (!require("lme4")) {
+    install.packages("lme4")
+    library(lme4)
+}
+
+
 
 ## do not run !
 ## options("mc.cores") <- 3 ## set up your global 'mclapply()' forking options other than default (2 cores). Beware: changing default options might not reproduce results as shown in paper.
@@ -70,7 +90,7 @@ ist <- ist[, tokeep]
 # levels(ist$COUNTRY)
 
 
-world.macroregions <- c( "AMER-SUD", "SOUTH-PAC", "EU", "EU", "AMER-SUD", "AMER", "AMER-SUD", "EU-OST", "EU-NORD", "EU-NORD", "EU-NORD", "EU", "EU-SUD", "ASIA-SUD", "EU-OST", "INDIA", "MID-EST", "EU-SUD", "ASIA", "EU", "SOUTH-PAC", "EU-NORD", "EU-OST", "EU-SUD", "EU-OST", "ASIA-SUD", "EU-OST", "EU-OST", "ASIA", "EU-SUD", "ASIA-SUD", "EU-NORD", "EU", "EU-SUD", "EU-NORD", "AMER" ) 
+world.macroregions <- c( "AMER-SOUTH", "SOUTH-PAC", "EU-WEST", "EU-WEST", "AMER-SOUTH", "AMER", "AMER-SOUTH", "EU-EAST", "EU-NORTH", "EU-NORTH", "EU-NORTH", "EU-WEST", "EU-SOUTH", "ASIA-SOUTH", "EU-EAST", "INDIA", "MID-EST", "EU-SOUTH", "ASIA", "EU-WEST", "SOUTH-PAC", "EU-NORTH", "EU-EAST", "EU-SOUTH", "EU-EAST", "ASIA-SOUTH", "EU-EAST", "EU-EAST", "ASIA", "EU-SOUTH", "ASIA-SOUTH", "EU-NORTH", "EU-WEST", "EU-SOUTH", "EU-NORTH", "AMER" ) 
 
 
 levels(ist$COUNTRY) <- world.macroregions
@@ -105,6 +125,7 @@ ist$RXHEP <- relevel(ist$RXHEP, ref = "0")
   ist[ ,-c(1,9)] <- apply(ist[ ,-c(1,9)], 2, as.integer)  ## convert to numeric
 
  ist$COUNTRY <- as.factor(as.character(ist$COUNTRY))
+ ist$COUNTRY <- factor(ist$COUNTRY, levels(ist$COUNTRY)[c(4,2,1,3)])
 
 ist$RCONSC <- relevel(ist$RCONSC, ref = "0")  #### IMPORTANT HERE !!! relevel RCONSC ..
 
@@ -489,9 +510,9 @@ ORs65 <- make.multirow(ORs65, 1)
 ### JUST KEEP eu-sud results here ....
 
 
-################ CALIBRATION OF EU-SUD RXASP EFFECT ##############
+################ CALIBRATION OF EU-SOUTH RXASP EFFECT ##############
 
-inp <- Return.key.IPD.summaries(Return.IPD.design.matrix(subset(ist, COUNTRY == "EU-SUD", select = -9)))
+inp <- Return.key.IPD.summaries(Return.IPD.design.matrix(subset(ist, COUNTRY == "EU-SOUTH", select = -9)))
 
 # calibrate RXASP effect by changing input FDEAD-RXASP correlation
 inp[[5]][9,6] <- inp[[5]][6,9] <- inp[[5]][9,6] - 0.055
@@ -507,7 +528,7 @@ eusud <- lapply(pp$Xspace, function(x) statf(x, istformfixed) )
 BagInfer(eusud)
 
 ### original IPD analysis
-statf(subset(ist, COUNTRY == "EU-SUD"), FDEAD ~ RXASP*RXHEP + RSBP + RATRIAL + RCONSC + SEX + AGE  ) 
+statf(subset(ist, COUNTRY == "EU-SOUTH"), FDEAD ~ RXASP*RXHEP + RSBP + RATRIAL + RCONSC + SEX + AGE  ) 
 
 
 
@@ -600,7 +621,8 @@ hist_ist <- plot_grid( hist_age, hist_rsbp, ncol = 1, rel_heights = c(2.5, 2.7) 
 
 ### FIGURE 1 OF MAIN MANUSCRIPT
 
-png("hist_ist.png", width = 550, height = 650)
+pdf("hist_ist.eps", width = 5.7, height = 6.8)
+## png("hist_ist.png", width = 550, height = 650)
 
 hist_ist 
 
@@ -612,7 +634,11 @@ rm(hist_ist , hist_age, hist_rsbp,  vertical.istsimul)
 ### 2D CONTOURS
 
 
-library(reshape2)
+if (!require("reshape2")) {
+    install.packages("reshape2")
+    library(reshape2)
+}
+
 
 
  contour.data <- function(D, cname1, cname2, breaks = c(0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99), cumulative = TRUE){
@@ -694,20 +720,20 @@ br <- c(0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99, 1)
  contourlist <- lapply(hubs, function(j){
 
      Ds <-  subset(vertical.ist, subset = COUNTRY == j)
- gr <- contourplot( Ds, aes(x = AGE, y = RSBP), cumulative = TRUE , legend.command = ifelse(levels(factor(Ds$COUNTRY)) == "EU-SUD", TRUE, FALSE),
+ gr <- contourplot( Ds, aes(x = AGE, y = RSBP), cumulative = TRUE , legend.command = ifelse(levels(factor(Ds$COUNTRY)) == "EU-SOUTH", TRUE, FALSE),
                    breaks = br) 
 
-     if ( j == "EU-OST")
+     if ( j == "EU-EAST")
     xl <- xlab("AGE")
  else
  xl <- xlab(" ")
      
-if ( j == "EU")
+if ( j == "EU-WEST")
   yl <- ylab("RSBP")
  else      
 yl <- ylab(" ")
 
- if ( j == "EU-SUD")
+ if ( j == "EU-SOUTH")
     legend <- theme(legend.position="bottom", legend.title = element_blank(), legend.text = element_text(size = 12))
  else
     legend <- NULL
@@ -731,20 +757,20 @@ yl <- ylab(" ")
  contour.condit.dead_1 <- lapply(hubs, function(j){
 
      Ds <-  subset(vertical.ist, subset = COUNTRY == j & FDEAD == 1)
- gr <- contourplot( Ds, aes(x = AGE, y = RSBP), cumulative = TRUE , legend.command = ifelse(levels(factor(Ds$COUNTRY)) == "EU-SUD", TRUE, FALSE),
+ gr <- contourplot( Ds, aes(x = AGE, y = RSBP), cumulative = TRUE , legend.command = ifelse(levels(factor(Ds$COUNTRY)) == "EU-SOUTH", TRUE, FALSE),
                    breaks = br) 
 
-     if ( j == "EU-OST")
+     if ( j == "EU-EAST")
     xl <- xlab("AGE")
  else
  xl <- xlab(" ")
      
-if ( j == "EU")
+if ( j == "EU-WEST")
   yl <- ylab("RSBP")
  else      
 yl <- ylab(" ")
 
-      if ( j == "EU-SUD")
+      if ( j == "EU-SOUTH")
     legend <- theme(legend.position="bottom", legend.title = element_blank(), legend.text = element_text(size = 12))
  else
     legend <- NULL
@@ -764,20 +790,20 @@ yl <- ylab(" ")
  contour.condit.dead_0 <- lapply(hubs, function(j){
 
      Ds <-  subset(vertical.ist, subset = COUNTRY == j & FDEAD == 0)
- gr <- contourplot( Ds, aes(x = AGE, y = RSBP), cumulative = TRUE , legend.command = ifelse(levels(factor(Ds$COUNTRY)) == "EU-SUD", TRUE, FALSE),
+ gr <- contourplot( Ds, aes(x = AGE, y = RSBP), cumulative = TRUE , legend.command = ifelse(levels(factor(Ds$COUNTRY)) == "EU-SOUTH", TRUE, FALSE),
                    breaks = br) 
 
-     if ( j == "EU-OST")
+     if ( j == "EU-EAST")
     xl <- xlab("AGE")
  else
  xl <- xlab(" ")
      
-if ( j == "EU")
+if ( j == "EU-WEST")
   yl <- ylab("RSBP")
  else      
 yl <- ylab(" ")
 
- if ( j == "EU-SUD")
+ if ( j == "EU-SOUTH")
     legend <- theme(legend.position="bottom", legend.title = element_blank(), legend.text = element_text(size = 12) )
  else
     legend <- NULL
@@ -795,13 +821,17 @@ allcontour.fdead0 <- plot_grid(  contour.condit.dead_0[[1]],  contour.condit.dea
 
 ### FIGURE 2 OF MAIN MANUSCRIPT
 
-png("contours.png", height = 600, width = 800)
+ png("contours.png", height = 600, width = 800)
 
  allcontour
 
 dev.off()
 
 rm(allcontour, contourlist)
+
+
+
+
 
 ### FIGURE 1 and 2 OF SUPPLEMENT PART I
 
@@ -830,20 +860,20 @@ rm( allcontour.fdead0, contour.condit.dead_0)
  contour.condit.sex_1 <- lapply(hubs, function(j){
 
      Ds <-  subset(vertical.ist, subset = COUNTRY == j & SEX == 1)
- gr <- contourplot( Ds, aes(x = AGE, y = RSBP), cumulative = TRUE , legend.command = ifelse(levels(factor(Ds$COUNTRY)) == "EU-SUD", TRUE, FALSE),
+ gr <- contourplot( Ds, aes(x = AGE, y = RSBP), cumulative = TRUE , legend.command = ifelse(levels(factor(Ds$COUNTRY)) == "EU-SOUTH", TRUE, FALSE),
                    breaks = br) 
 
-     if ( j == "EU-OST")
+     if ( j == "EU-EAST")
     xl <- xlab("AGE")
  else
  xl <- xlab(" ")
      
-if ( j == "EU")
+if ( j == "EU-WEST")
   yl <- ylab("RSBP")
  else      
 yl <- ylab(" ")
 
-      if ( j == "EU-SUD")
+      if ( j == "EU-SOUTH")
     legend <- theme(legend.position="bottom", legend.title = element_blank(), legend.text = element_text(size = 12))
  else
     legend <- NULL
@@ -862,20 +892,20 @@ yl <- ylab(" ")
  contour.condit.sex_0 <- lapply(hubs, function(j){
 
      Ds <-  subset(vertical.ist, subset = COUNTRY == j & SEX == 0)
- gr <- contourplot( Ds, aes(x = AGE, y = RSBP), cumulative = TRUE , legend.command = ifelse(levels(factor(Ds$COUNTRY)) == "EU-SUD", TRUE, FALSE),
+ gr <- contourplot( Ds, aes(x = AGE, y = RSBP), cumulative = TRUE , legend.command = ifelse(levels(factor(Ds$COUNTRY)) == "EU-SOUTH", TRUE, FALSE),
                    breaks = br) 
 
-     if ( j == "EU-OST")
+     if ( j == "EU-EAST")
     xl <- xlab("AGE")
  else
  xl <- xlab(" ")
      
-if ( j == "EU")
+if ( j == "EU-WEST")
   yl <- ylab("RSBP")
  else      
 yl <- ylab(" ")
 
- if ( j == "EU-SUD")
+ if ( j == "EU-SOUTH")
     legend <- theme(legend.position="bottom", legend.title = element_blank(), legend.text = element_text(size = 12))
  else
     legend <- NULL
@@ -987,10 +1017,10 @@ down <- geom_hline(yintercept=-0.5, linetype=3, colour="red")
  plot_two <- pl + bxpl + panels + xl + yl + theme_bw() + zero + up + down + scale_x_continuous(labels = c("", "NORTA-\u0393", "NORTA-J", ""), limits = c(2,5))  
 
 
-## EU-OST 4th mom outlier under NORTA  (IMPORTANT !!!!)
+## EU-EAST 4th mom outlier under NORTA  (IMPORTANT !!!!)
 
-  ##   ist.similarity[[4]][[3]]$fourth.moment  ## is Heparin assignement in EU-OST that is well below 1%
-## mean(ist$RHEP24[ist$COUNTRY=="EU-OST"])
+  ##   ist.similarity[[4]][[3]]$fourth.moment  ## is Heparin assignement in EU-EAST that is well below 1%
+## mean(ist$RHEP24[ist$COUNTRY=="EU-EAST"])
 
 
 ########## GRAPHICAL CHECK AGAINST ORIG. IPD SUMMARIES ############
@@ -1094,7 +1124,7 @@ zero <- geom_hline(yintercept=0, linetype=2, colour="green")
 up <- geom_hline(yintercept=0.5, linetype=3, colour="red")
 down <- geom_hline(yintercept=-0.5, linetype=3, colour="red")
 
- plot_three <- pl + bxpl + xl + yl + theme_bw() + zero + up + down + scale_x_continuous(labels = c("", "NORTA-\u0393", "NORTA-J", ""), limits = c(2,5))  
+ plot_three <- pl + bxpl + xl + yl + theme_bw() + zero + up + down + scale_x_continuous(labels = c("", "NORTA-\u0393", "NORTA-J", ""), limits = c(2,5)) +  labs(shape="Key IPD summaries") 
 
 
 ### print FIGURE 5 of SUPPLEMENT PART I
@@ -1170,11 +1200,11 @@ panel.cor <- function(x,y){
 
 ## FIGURE 3 OF SUPPLEMENT PART I
 
-dat2 <- as.data.frame(Return.IPD.design.matrix(ist[ist$COUNTRY=="EU-OST", -9])[, -1])
+dat2 <- as.data.frame(Return.IPD.design.matrix(ist[ist$COUNTRY=="EU-EAST", -9])[, -1])
 
 pdf( file.path(getwd(),"scatter2C.pdf"), width= 9, height = 9)
 
-pairs(dat2, upper.panel = panel.cor, lower.panel = panel.fit, main = "EU-OST" )
+pairs(dat2, upper.panel = panel.cor, lower.panel = panel.fit, main = "EU-EAST" )
 
 dev.off()
 
@@ -1183,29 +1213,29 @@ dev.off()
 
 # not shown figures
  
-dat <- as.data.frame(Return.IPD.design.matrix(ist[ist$COUNTRY=="EU", -9])[, -1])
+dat <- as.data.frame(Return.IPD.design.matrix(ist[ist$COUNTRY=="EU-WEST", -9])[, -1])
 
 pdf( file.path(getwd(),"scatter2A.pdf"), width= 9, height = 9)
 
-pairs(dat, upper.panel = panel.cor, lower.panel = panel.fit, main = "EU" )
+pairs(dat, upper.panel = panel.cor, lower.panel = panel.fit, main = "EU-WEST" )
 
 dev.off()
 
 
-dat1 <- as.data.frame(Return.IPD.design.matrix(ist[ist$COUNTRY=="EU-NORD", -9])[, -1])
+dat1 <- as.data.frame(Return.IPD.design.matrix(ist[ist$COUNTRY=="EU-NORTH", -9])[, -1])
 
 pdf( file.path(getwd(),"scatter2B.pdf"), width= 9, height = 9)
 
-pairs(dat1, upper.panel = panel.cor, lower.panel = panel.fit, main = "EU-NORD" )
+pairs(dat1, upper.panel = panel.cor, lower.panel = panel.fit, main = "EU-NORTH" )
 
 dev.off()
 
 
-dat3 <- as.data.frame(Return.IPD.design.matrix(ist[ist$COUNTRY=="EU-SUD", -9])[, -1])
+dat3 <- as.data.frame(Return.IPD.design.matrix(ist[ist$COUNTRY=="EU-SOUTH", -9])[, -1])
 
 pdf( file.path(getwd(),"scatter2D.pdf"), width= 9, height = 9)
 
-pairs(dat3, upper.panel = panel.cor, lower.panel = panel.fit, main = "EU-SUD" )
+pairs(dat3, upper.panel = panel.cor, lower.panel = panel.fit, main = "EU-SOUTH" )
 
 dev.off()
 
@@ -1380,7 +1410,6 @@ tabS3 <- make.multirow( tabS3, 1, rotate = T)
 
 
 ### OUT REPORT
-
 
 
  toreport <- list(ist = ist, istsummary = istsummary, tabletwo = table2, tablethree= table3, sdre = sdranefsd, qqsdre = qqranefsd)
