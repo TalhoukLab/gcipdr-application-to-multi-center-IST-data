@@ -590,6 +590,7 @@ sigvars <- as.character(table2B$names[2:10][which(abs(signif) > qnorm(alphalev))
  levels( vertical.ist$DATA)[1:2] <- c("Fewer moments", "All moments")  # c("NORTA-\u0393", "NORTA-J")
 
 
+ vertical.ist$COUNTRY <- factor(vertical.ist$COUNTRY, hubs)
 
 
  mp <- aes( x= AGE, y=..density.., fill = DATA, color = DATA)
