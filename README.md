@@ -1,4 +1,6 @@
-This is code to run an application of the 'gcipdr' package (see homonymous repository) on the open multi-center International Stroke Trial (IST) data. 
+This is code to run an application of the 'gcipdr' package (see homonymous repository) on the open multi-center International Stroke Trial (IST) data. This analysis appeared in [Stat Med](https://onlinelibrary.wiley.com/doi/full/10.1002/sim.8470). 
+
+Notes: as by [version 6.1](https://data2knowledge.atlassian.net/wiki/spaces/DSDEV/pages/1600061445/Version+6.1.0) of DataSHIELD there are available functions to compute skewness and kurtosis. 
 
 # Instructions
 
